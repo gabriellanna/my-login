@@ -9,33 +9,34 @@ import {
 import LoginPage from './pages/LoginPage/index';
 import HomePage from './pages/HomePage/index';
 
-import { AuthContext } from ".contexts/auth";
-import { useState } from "react";
+import { AuthProvider, AuthContext } from "./contexts/auth";
+import { useState, useContext } from "react";
 
 
 
 const AppRoutes = () => {
+    const Private = ({ children }) =>{
+        const { authenticated, loading } = useContext(AuthContext);
 
-    const [user, setUser] = useState(null);
+        if (loading) {
+            return <div className="loading">Carregando...</div>;
+        }
 
-    const login = (email, password) => {
-        console.log("login auth", { email, password });
-        setUser({ id: "123", email });
+        if (!authenticated) {
+            return <Navigate to="/login" />;
+        }
+
+        return children;
     };
-
-    const logout = () => {
-        console.log("logout");
-    };
-
-
+    
     return(
         <Router>
-            <AuthContext.Provider value={{ authenticated: !!user, user, login, logout}}>
+            <AuthProvider>
                 <Routes>
                     <Route exact path="/login" element={<LoginPage/>} />
-                    <Route exact path="/" element={<HomePage />} />
+                    <Route exact path="/" element={<Private><HomePage /></Private>} />
                 </Routes>
-            </AuthContext.Provider>
+            </AuthProvider>
         </Router>
     )
 }
